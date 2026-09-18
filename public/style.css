@@ -51,3 +51,4 @@
 .online-external>span:first-child{flex-basis:100%}
 .api-settings{margin:16px 0}
 @media(max-width:600px){.online-heading{padding:14px 16px}.online-scroll{padding:0 16px 20px}.online-heading .eyebrow{font-size:10px}.search-modes{grid-template-columns:1fr;gap:7px}.search-modes>button{padding:10px 12px}.search-modes>button[aria-pressed=true]{padding:9px 11px}.mode-description{margin-top:3px}.online-form input{font-size:16px}.discover-search{margin:18px 0}.online-heading h2{font-size:22px}}
+.online-form .primary{flex-shrink:0;white-space:nowrap}
