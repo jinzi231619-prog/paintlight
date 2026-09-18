@@ -1,0 +1,55 @@
+name: Restore licensed music assets
+on:
+  pull_request:
+    types: [synchronize]
+    paths: ['.github/workflows/restore-music.yml']
+permissions:
+  contents: write
+concurrency:
+  group: restore-paintlight-music
+  cancel-in-progress: false
+jobs:
+  restore:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/gallery-atmosphere'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: feat/gallery-atmosphere
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Restore the two attributed recordings
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          mkdir -p public/audio
+          curl --fail --location --silent --show-error --proto '=https' --max-time 120 --retry 2 --max-filesize 30000000 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Gymnopedie%20No%201.mp3' -o /tmp/paintlight-satie.mp3
+          curl --fail --location --silent --show-error --proto '=https' --max-time 120 --retry 2 --max-filesize 30000000 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Canon%20in%20D%20Major.mp3' -o /tmp/paintlight-canon.mp3
+          ffmpeg -hide_banner -loglevel error -y -i /tmp/paintlight-satie.mp3 -vn -map_metadata -1 -c:a libmp3lame -b:a 128k -ar 44100 -ac 2 public/audio/gymnopedie-no-1.mp3
+          ffmpeg -hide_banner -loglevel error -y -i /tmp/paintlight-canon.mp3 -vn -map_metadata -1 -c:a libmp3lame -b:a 128k -ar 44100 -ac 2 public/audio/canon-in-d.mp3
+          python3 - <<'PY'
+          import json, subprocess
+          for path, low, high in [('public/audio/gymnopedie-no-1.mp3',185,190),('public/audio/canon-in-d.mp3',353,358)]:
+              probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_format','-show_streams','-of','json',path]))
+              assert low < float(probe['format']['duration']) < high, path
+              stream=probe['streams'][0]
+              assert stream['codec_name']=='mp3' and stream['sample_rate']=='44100' and stream['channels']==2, path
+              print(path, probe['format']['duration'], subprocess.check_output(['git','hash-object',path],text=True).strip())
+          PY
+          npm ci
+          npm run check
+          npm run preview-build
+      - name: Save audio on the existing feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/audio/gymnopedie-no-1.mp3 public/audio/canon-in-d.mp3
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Restore licensed Satie and Pachelbel recordings from their official source'
+          git push origin HEAD:refs/heads/feat/gallery-atmosphere
