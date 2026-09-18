@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/inspiration.css">
   <link rel="stylesheet" href="/classify.css">
   <link rel="stylesheet" href="/music.css">
+  <link rel="stylesheet" href="/mobile-layout.css">
   <script type="module" src="/app.js"></script>
 </head>
 <body>
@@ -18,10 +19,13 @@
     <nav aria-label="我的画作"><a id="accountButton" class="quiet" href="/api/private/login" hidden>登录画库</a><button id="uploadButton" class="quiet">＋ 添加画作</button><button id="myUploadsButton" class="quiet">我的画库</button><button id="historyButton" class="quiet"><span class="desktop-label">最近看过</span><span class="mobile-label">历史</span></button><button id="favoritesButton" class="quiet">我的收藏 <span id="favoritesCount" class="count">0</span></button></nav><div class="header-tools"><div class="music-control"><button id="musicToggle" class="music-toggle" type="button" aria-label="开启背景音乐" aria-pressed="false"><svg id="musicPlayIcon" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4.5 15 10l-8 5.5Z"/></svg><svg id="musicPauseIcon" viewBox="0 0 20 20" aria-hidden="true" hidden><path d="M7 5v10M13 5v10"/></svg><span id="musicLabel">音乐 · 关</span></button><button id="musicSettings" class="music-settings" type="button" aria-haspopup="dialog" aria-controls="musicDialog" aria-label="选择曲目与音量">⌄</button></div><label class="language-control"><span aria-hidden="true">◎</span><select id="languageSelect" data-language-select aria-label="Language / 语言"><option value="zh" lang="zh-CN">中文</option><option value="en" lang="en">English</option></select></label></div>
   </header>
   <main class="workspace">
-    <aside class="controls" aria-label="探索与筛选">
+    <aside id="exploreControls" class="controls" aria-label="探索与筛选">
+      <div id="galleryIntro" class="gallery-intro">
       <div class="eyebrow">A PAINTING, A POSSIBILITY</div>
       <h1>让灵感，<br>偶然发生。</h1>
       <p class="intro">从一幅画，找到下一张照片。</p>
+      <a class="mobile-controls-link" href="#exploreControls">探索与筛选 <span aria-hidden="true">↓</span></a>
+      </div>
       <form id="discoverForm" class="discover-search" role="search">
         <label for="discoverQuery">搜索画作</label>
         <div class="discover-input"><input id="discoverQuery" disabled maxlength="160" autocomplete="off" placeholder="画名、画家，或一种氛围" aria-describedby="discoverHelp"><button id="onlineSearchButton" type="submit" disabled>搜索</button></div>

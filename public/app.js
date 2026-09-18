@@ -1,4 +1,5 @@
 import {setupMusic} from './music.mjs';
+import {setupResponsiveLayout} from './responsive-layout.mjs';
 import {setupClassification} from './classify.mjs';
 import {t, message, joinText, localized, rawText, setText, setAttr, textNode, setupI18n, getLanguage} from './i18n.mjs';
 import {GROUPS, TAGS, parseQuery, filterArtworks, chooseRandom, colorDistance} from './logic.mjs';
@@ -224,6 +225,7 @@ function showEmpty(unknown = []) {
   $('imageError').hidden = true;
   $('zoomButton').hidden = true;
   $('artInfo').hidden = true;
+  setInsights(false);
   $('emptyState').hidden = false;
   $('artStage').setAttribute('aria-busy', 'false');
   $('relaxOptions').replaceChildren();
@@ -435,7 +437,13 @@ function initEvents() {
     updateFavorite();
     toast(favorites.has(current.id) ? '已收藏，留给下一次拍摄。' : '已取消收藏。');
   };
-  $('insightsButton').onclick = () => setInsights($('insights').hidden);
+  $('insightsButton').onclick = () => {
+    const open = $('insights').hidden;
+    setInsights(open);
+    if (open && matchMedia('(max-width: 700px)').matches) {
+      $('insights').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start'});
+    }
+  };
   $('similarColor').onclick = () => similar('color');
   $('similarComposition').onclick = () => similar('composition');
   $('retryImage').onclick = () => {
@@ -617,6 +625,7 @@ async function init() {
   }
 }
 setupI18n();
+setupResponsiveLayout();
 setupMusic();
 document.addEventListener('languagechange', () => {
   if (current) $('originalTitle').hidden = current.userAdded || getLanguage() === 'en' || current.title === current.titleZh;

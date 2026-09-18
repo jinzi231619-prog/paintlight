@@ -1,0 +1,21 @@
+.mobile-controls-link {display:none;}
+
+@media (max-width:700px) {
+  .gallery-intro {order:0;padding:22px 20px 0;}
+  .gallery-intro>.eyebrow {display:none;}
+  .gallery-intro .intro {margin-bottom:8px;}
+  .mobile-controls-link {display:inline-flex;align-items:center;gap:8px;min-height:32px;font-size:13px;color:var(--muted);text-underline-offset:4px;}
+  .gallery {order:1;padding-top:8px;}
+  .art-stage {height:clamp(240px,50svh,430px);max-height:none;}
+  .art-heading h2 {overflow-wrap:anywhere;}
+  .controls {order:2;border-top:1px solid var(--line);border-bottom:1px solid var(--line);scroll-margin-top:16px;}
+  .controls>.discover-search {margin-top:0;}
+  .workspace>.insights {order:3;margin:26px 20px 0;scroll-margin-top:20px;}
+  .workspace>.gallery-footer {order:4;margin:28px 20px 20px;}
+  /* Keep the optional first-visit invitation from covering most of the painting. */
+  .music-invitation {padding:16px 18px;}
+  .music-invitation .eyebrow,.music-invitation p,.music-invitation small {display:none;}
+  .music-invitation h2 {font-size:18px;line-height:1.5;letter-spacing:0;margin:0 24px 12px 0;}
+  .music-invitation h2 br {display:none;}
+  .music-invite-actions>button {min-height:44px;}
+}
