@@ -16,11 +16,12 @@ const safeLink = url => {
   }
 };
 export function setupOnline({getQuery, onImport, onView}) {
-  let controller, sequence = 0, currentPage = 0, lastQuery = '';
+  let controller, sequence = 0, currentPage = 0, lastQuery = '', mode = 'museum';
   const checks = new Set();
   const apiKey = () => O('apiKey').value.trim();
   const needKey = () => {
     if ((/^sk-[A-Za-z0-9_-]{16,500}$/).test(apiKey())) return true;
+    O('apiSettings').hidden = false;
     O('apiSettings').open = true;
     O('apiKey').focus();
     setText(O('onlineStatus'), '请先填写 API 密钥，或选择免费的馆藏搜索。');
@@ -44,15 +45,22 @@ export function setupOnline({getQuery, onImport, onView}) {
     const query = translateSearch(O('onlineQuery').value.trim()) || 'classical';
     O('googleImages').href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(query + ' painting');
     O('bingImages').href = 'https://www.bing.com/images/search?q=' + encodeURIComponent(query + ' painting');
-    O('onlineExternal').hidden = false;
+    O('onlineExternal').hidden = mode !== 'external';
   };
-  const open = () => {
-    O('onlineQuery').value = getQuery();
+  const open = (query = getQuery()) => {
+    setMode('museum');
+    O('onlineQuery').value = query;
     updateExternal();
     O('onlineDialog').showModal();
+    O('onlineScroll').scrollTop = 0;
     O('onlineQuery').focus();
   };
-  O('onlineSearchButton').onclick = open;
+  O('discoverForm').onsubmit = e => {
+    e.preventDefault();
+    const query = O('discoverQuery').value.trim();
+    open(query);
+    if (query) search();
+  };
   O('closeOnline').onclick = close;
   O('onlineDialog').addEventListener('cancel', cancel);
   O('checkApiConnection').onclick = async () => {
@@ -81,16 +89,30 @@ export function setupOnline({getQuery, onImport, onView}) {
     cancel();
     O('apiKey').value = '';
   });
-  O('onlineMode').onchange = () => {
+  const setMode = next => {
     cancel();
+    mode = next;
     currentPage = 0;
     O('onlinePagination').hidden = true;
-    const museum = O('onlineMode').value === 'museum';
+    O('onlineResults').replaceChildren();
+    O('onlineSources').replaceChildren();
+    O('onlineCitations').replaceChildren();
+    const museum = mode === 'museum';
     O('onlineSource').hidden = !museum;
     O('onlineSourceLabel').hidden = !museum;
-    if (O('onlineMode').value === 'web' && !apiKey()) O('apiSettings').open = true;
+    O('apiSettings').hidden = mode !== 'web';
+    O('apiSettings').open = mode === 'web';
+    O('onlineSubmit').hidden = mode === 'external';
+    document.querySelectorAll('[data-search-mode]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.searchMode === mode));
+    });
+    setText(O('onlineModeHelp'), mode === 'museum' ? '免费检索馆藏，无需注册或填写密钥。' : mode === 'external' ? '输入关键词，再选择 Google 或 Bing；将在新窗口打开，免费使用。' : '此模式使用你的 OpenAI API 额度；只有点击搜索才会发起请求。');
+    setText(O('onlineStatus'), '输入关键词，寻找精选画库之外的作品。');
     updateExternal();
   };
+  document.querySelectorAll('[data-search-mode]').forEach(button => {
+    button.onclick = () => setMode(button.dataset.searchMode);
+  });
   O('onlineQuery').oninput = updateExternal;
   O('onlineSource').onchange = () => {
     currentPage = 0;
@@ -149,10 +171,10 @@ export function setupOnline({getQuery, onImport, onView}) {
     }
   };
   const search = async (page = 0) => {
-    const query = O('onlineQuery').value.trim(), web = O('onlineMode').value === 'web';
+    const query = O('onlineQuery').value.trim(), web = mode === 'web';
     if (!query) return;
     updateExternal();
-    if (O('onlineMode').value === 'external') {
+    if (mode === 'external') {
       cancel();
       O('onlineResults').replaceChildren();
       O('onlineSources').replaceChildren();
@@ -284,7 +306,7 @@ export function setupOnline({getQuery, onImport, onView}) {
       }
       O('googleImages').href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(data.translated + ' painting');
       O('bingImages').href = 'https://www.bing.com/images/search?q=' + encodeURIComponent(data.translated + ' painting');
-      O('onlineExternal').hidden = false;
+      O('onlineExternal').hidden = mode !== 'external';
     } catch (e) {
       if (current === sequence) setText(O('onlineStatus'), e.name === 'AbortError' ? web ? '搜索超时或已取消，请稍后重试；已开始的 API 调用可能已计费。' : '搜索超时或已取消，请稍后重试或切换来源。' : e.message);
     } finally {

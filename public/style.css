@@ -23,3 +23,31 @@
 :lang(en) .save-button{max-width:145px}
 @media(max-width:1100px){.topbar{height:auto;min-height:92px;flex-wrap:wrap;padding-top:14px;padding-bottom:14px;gap:8px 20px}.topbar .brand{order:0}.language-control{order:1;margin-left:auto}.topbar nav{order:2;width:100%;justify-content:space-between;gap:10px;flex-wrap:wrap}}
 @media(max-width:700px){:lang(en) h1{font-size:29px}.language-control select{min-height:40px}.gallery-toolbar .compact{flex-shrink:0}.api-key-row{flex-wrap:wrap}.api-key-row input{flex:1 1 100%}}
+
+/* Search is an always-visible starting point, including on mobile. */
+.discover-search{margin:22px 0 24px;padding:16px;background:var(--stage);border:2px solid var(--accent);border-radius:8px}
+.discover-search>label{display:block;font-size:17px;font-weight:600;margin-bottom:10px}
+.discover-input{display:flex;gap:6px;min-width:0}
+.discover-input input{min-width:0;width:100%;padding:11px 9px;background:var(--panel);color:var(--text);border:1px solid var(--line-strong);border-radius:4px;font-size:14px}
+.discover-input input::placeholder{color:var(--muted);opacity:1}
+.discover-input button{flex-shrink:0;border:0;border-radius:4px;padding:10px;background:var(--accent);color:var(--accent-dark);font-weight:600;font-size:14px}
+.discover-search p{font-size:12px;line-height:1.6;margin:9px 0 0;color:var(--muted)}
+/* Keep the dialog header outside its scrolling body. */
+.online-dialog{padding:0;overflow:hidden;max-height:92vh;max-height:92dvh}
+.online-dialog[open]{display:flex;flex-direction:column}
+.online-heading{flex-shrink:0;padding:18px 24px;border-bottom:1px solid var(--line);background:var(--panel);z-index:1}
+.online-heading h2{margin:3px 0 0}
+.online-heading .close-button{position:static;width:44px;height:44px;background:var(--stage);border-color:var(--line-strong)}
+.online-scroll{padding:0 24px 24px;overflow-y:auto;overscroll-behavior:contain;min-height:0}
+.search-welcome{margin:18px 0;font-size:16px;color:var(--text)}
+.search-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.search-modes>button{text-align:left;padding:14px;border:1px solid var(--line-strong);border-radius:6px;background:var(--stage);min-width:0}
+.search-modes>button[aria-pressed=true]{border:2px solid var(--accent);padding:13px;background:var(--accent);color:var(--accent-dark)}
+.mode-title{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-weight:600;font-size:15px}
+.mode-badge{font-size:11px;font-weight:400;border:1px solid currentColor;border-radius:3px;padding:1px 5px;white-space:nowrap}
+.mode-description{display:block;font-size:12px;line-height:1.5;margin-top:7px}
+.online-form input{border:2px solid var(--accent);min-height:52px;font-size:17px}
+.online-external a{display:inline-flex;border:1px solid var(--accent);background:var(--accent);color:var(--accent-dark);border-radius:4px;padding:10px 14px;text-decoration:none;font-weight:600}
+.online-external>span:first-child{flex-basis:100%}
+.api-settings{margin:16px 0}
+@media(max-width:600px){.online-heading{padding:14px 16px}.online-scroll{padding:0 16px 20px}.online-heading .eyebrow{font-size:10px}.search-modes{grid-template-columns:1fr;gap:7px}.search-modes>button{padding:10px 12px}.search-modes>button[aria-pressed=true]{padding:9px 11px}.mode-description{margin-top:3px}.online-form input{font-size:16px}.discover-search{margin:18px 0}.online-heading h2{font-size:22px}}

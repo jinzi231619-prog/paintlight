@@ -19,9 +19,13 @@
       <div class="eyebrow">A PAINTING, A POSSIBILITY</div>
       <h1>让灵感，<br>偶然发生。</h1>
       <p class="intro">从一幅画，找到下一张照片。</p>
+      <form id="discoverForm" class="discover-search" role="search">
+        <label for="discoverQuery">搜索画作</label>
+        <div class="discover-input"><input id="discoverQuery" maxlength="160" autocomplete="off" placeholder="画名、画家，或一种氛围" aria-describedby="discoverHelp"><button id="onlineSearchButton" type="submit">搜索</button></div>
+        <p id="discoverHelp">免费馆藏搜索 · 无需 API 密钥</p>
+      </form>
       <button id="freeRandom" class="primary wide"><span class="dice" aria-hidden="true">⚄</span> 随机遇见一幅画 <span aria-hidden="true">↗</span></button>
       <button id="browseCatalog" class="secondary wide online-entry">浏览全部画库 <span aria-hidden="true">▦</span></button>
-      <button id="onlineSearchButton" class="secondary wide online-entry">在线搜画 <span aria-hidden="true">⌕</span></button>
       <details id="searchPanel" class="search-panel" open><summary>带着一点想法 <span>筛选画作 ＋</span></summary>
       <form id="searchForm">
         <label class="field-label" for="query">你想找什么？</label>
@@ -73,16 +77,25 @@
     </form>
   </dialog>
   <dialog id="deleteDialog" class="delete-dialog"><h2>删除这幅上传的画？</h2><p id="deleteTitle"></p><p class="hint">将从你的云端画库移除图片、资料和相关收藏。</p><div class="upload-actions"><button id="cancelDelete" class="secondary">保留</button><button id="confirmDelete" class="primary">确认删除</button></div><p id="deleteError" class="form-error" role="alert" hidden></p></dialog>
-  <dialog id="onlineDialog" class="online-dialog"><div class="dialog-heading"><div><span class="eyebrow">BEYOND THE COLLECTION</span><h2>在线搜画</h2></div><button id="closeOnline" class="close-button" aria-label="关闭在线搜索">×</button></div>
-    <p class="hint">从馆藏或更广的网页寻找画作。搜索结果是待核验线索；AI 识图也可能出错，不保证满足全部条件。</p>
-    <div class="online-options"><label for="onlineMode">搜索范围</label><select id="onlineMode"><option value="museum">馆藏搜索 · 免费</option><option value="external">网页找图 · 免费外部搜索</option><option value="web">AI 全网搜画 · API 计费</option></select><label id="onlineSourceLabel" for="onlineSource">来源</label><select id="onlineSource"><option value="all">所有免费来源</option><option value="library">网站画库 · 图片已保存</option><option value="met">大都会艺术博物馆</option><option value="smk">丹麦国家美术馆</option><option value="commons">Wikimedia Commons</option><option value="aic">芝加哥艺术博物馆</option></select></div>
-    <div id="onlineExternal" class="online-external"><span>免密钥网页找图</span><a id="googleImages" target="_blank" rel="noopener noreferrer">打开 Google 图片 ↗</a><a id="bingImages" target="_blank" rel="noopener noreferrer">打开 Bing 图片 ↗</a><span class="hint">关键词会带入新窗口；结果不会自动导入。</span></div>
-    <details id="apiSettings" class="api-settings"><summary>API 连接 · 无需插件</summary><p class="hint">全网搜画和 AI 检查使用你的 OpenAI API 额度。密钥仅在当前页面临时使用，经画遇后台发送至 OpenAI，不写入画库或浏览器存储；刷新或离开页面后清除。</p><label for="apiKey">OpenAI API 密钥</label><div class="api-key-row"><input id="apiKey" type="password" autocomplete="off" spellcheck="false" maxlength="503" placeholder="sk-…"><button id="clearApiKey" type="button" class="secondary">清除</button><button id="checkApiConnection" type="button" class="secondary">检查连接</button></div><p id="apiConnectionStatus" class="hint" role="status">检查连接无需密钥，不调用付费模型。</p><p class="hint"><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">获取 API 密钥 ↗</a> · <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer">检查 API 余额 ↗</a></p><p class="hint">每次全网搜索最多调用 2 次搜索工具；识图只在你点击时运行。取消请求后，已经开始的调用仍可能计费。当前使用 GPT-5 mini；连接后首次调用会验证账户是否支持。</p></details>
+  <dialog id="onlineDialog" class="online-dialog" aria-labelledby="onlineHeading">
+    <div class="dialog-heading online-heading"><div><span class="eyebrow">BEYOND THE COLLECTION</span><h2 id="onlineHeading">搜索画作</h2></div><button id="closeOnline" class="close-button" aria-label="关闭在线搜索">×</button></div>
+    <div id="onlineScroll" class="online-scroll">
+    <p class="search-welcome">直接搜索，无需密钥。先从免费馆藏开始。</p>
+    <div class="search-modes" role="group" aria-label="搜索方式">
+      <button type="button" data-search-mode="museum" aria-pressed="true"><span class="mode-title">馆藏搜索 <span class="mode-badge">免费</span></span><span class="mode-description">在这里浏览博物馆与网站画库</span></button>
+      <button type="button" data-search-mode="external" aria-pressed="false"><span class="mode-title">网页找图 <span class="mode-badge">免费</span></span><span class="mode-description">用 Google / Bing 探索更多画作</span></button>
+      <button type="button" data-search-mode="web" aria-pressed="false"><span class="mode-title">AI 全网搜画 <span class="mode-badge">API 计费</span></span><span class="mode-description">可选进阶功能，需要自己的密钥</span></button>
+    </div>
+    <p id="onlineModeHelp" class="hint">免费检索馆藏，无需注册或填写密钥。</p>
     <form id="onlineForm" class="online-form"><label class="sr-only" for="onlineQuery">画名、作者或场景</label><input id="onlineQuery" maxlength="160" required placeholder="例如：月夜、莫奈，或 rainy street"><button id="onlineSubmit" type="submit" class="primary">搜索</button></form>
     <div class="online-examples"><span>试试</span><button type="button" data-online-example="月光 海景">月光海景</button><button type="button" data-online-example="Grimshaw">格里姆肖</button><button type="button" data-online-example="rainy street">雨中街道</button></div>
+    <div class="online-options"><label id="onlineSourceLabel" for="onlineSource">来源</label><select id="onlineSource"><option value="all">所有免费来源</option><option value="library">网站画库 · 图片已保存</option><option value="met">大都会艺术博物馆</option><option value="smk">丹麦国家美术馆</option><option value="commons">Wikimedia Commons</option><option value="aic">芝加哥艺术博物馆</option></select></div>
+    <div id="onlineExternal" class="online-external" hidden><span>免密钥网页找图</span><a id="googleImages" target="_blank" rel="noopener noreferrer">打开 Google 图片 ↗</a><a id="bingImages" target="_blank" rel="noopener noreferrer">打开 Bing 图片 ↗</a><span class="hint">关键词会带入新窗口；结果不会自动导入。</span></div>
+    <details id="apiSettings" class="api-settings" hidden><summary>AI 搜索设置 · 使用自己的 API 密钥</summary><p class="hint">全网搜画和 AI 检查使用你的 OpenAI API 额度。密钥仅在当前页面临时使用，经画遇后台发送至 OpenAI，不写入画库或浏览器存储；刷新或离开页面后清除。</p><label for="apiKey">OpenAI API 密钥</label><div class="api-key-row"><input id="apiKey" type="password" autocomplete="off" spellcheck="false" maxlength="503" placeholder="sk-…"><button id="clearApiKey" type="button" class="secondary">清除</button><button id="checkApiConnection" type="button" class="secondary">检查连接</button></div><p id="apiConnectionStatus" class="hint" role="status">检查连接无需密钥，不调用付费模型。</p><p class="hint"><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">获取 API 密钥 ↗</a> · <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer">检查 API 余额 ↗</a></p><p class="hint">每次全网搜索最多调用 2 次搜索工具；识图只在你点击时运行。取消请求后，已经开始的调用仍可能计费。当前使用 GPT-5 mini；连接后首次调用会验证账户是否支持。</p></details>
     <p id="onlineStatus" class="hint" role="status" aria-live="polite">输入关键词，寻找精选画库之外的作品。</p><div id="onlineSources" class="online-sources"></div>
     <div id="onlinePagination" class="online-pagination" hidden><button id="onlinePrevious" class="secondary" type="button">上一页</button><span id="onlinePageLabel"></span><button id="onlineNext" class="secondary" type="button">下一页</button></div><div id="onlineResults" class="online-results"></div><div id="onlineCitations"></div>
     <p class="hint">馆藏搜索和外部网页找图无需密钥。只有 AI 全网搜画与识图需要 API 密钥；来源图片可能加载失败，仍可打开原页查看。AI 检查仅提供画面参考，不自动确认画作身份或标签。</p>
+    </div>
   </dialog>
   <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
 </body>
