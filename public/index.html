@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#171b19">
+  <title>画遇 Paintlight · 从绘画遇见摄影灵感</title>
+  <meta name="description" content="随机遇见一幅真实绘画，按人物、场景和光线筛选，发现值得带进镜头的构图与色彩。">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23171b19'/%3E%3Cpath d='M8 25V13a8 8 0 0 1 16 0v12M6 25h20M12 25V14a4 4 0 0 1 8 0v11' stroke='%23d3e8ad' fill='none' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="画遇首页"><svg viewBox="0 0 32 36" aria-hidden="true"><path d="M5 32V14a11 11 0 0 1 22 0v18M2 32h28M11 32V15a5 5 0 0 1 10 0v17"/></svg><span>画遇</span><span class="brand-en">PAINTLIGHT</span></a>
+    <nav aria-label="我的画作"><a id="accountButton" class="quiet" href="/api/private/login" hidden>登录画库</a><button id="uploadButton" class="quiet">＋ 添加画作</button><button id="myUploadsButton" class="quiet">我的画库</button><button id="historyButton" class="quiet"><span class="desktop-label">最近看过</span><span class="mobile-label">历史</span></button><button id="favoritesButton" class="quiet">我的收藏 <span id="favoritesCount" class="count">0</span></button></nav>
+  </header>
+  <main class="workspace">
+    <aside class="controls" aria-label="探索与筛选">
+      <div class="eyebrow">A PAINTING, A POSSIBILITY</div>
+      <h1>让灵感，<br>偶然发生。</h1>
+      <p class="intro">从一幅画，找到下一张照片。</p>
+      <button id="freeRandom" class="primary wide"><span class="dice" aria-hidden="true">⚄</span> 随机遇见一幅画 <span aria-hidden="true">↗</span></button>
+      <button id="browseCatalog" class="secondary wide online-entry">浏览全部画库 <span aria-hidden="true">▦</span></button>
+      <button id="onlineSearchButton" class="secondary wide online-entry">在线搜画 <span aria-hidden="true">⌕</span></button>
+      <details id="searchPanel" class="search-panel" open><summary>带着一点想法 <span>筛选画作 ＋</span></summary>
+      <form id="searchForm">
+        <label class="field-label" for="query">你想找什么？</label>
+        <div class="search-input"><input id="query" autocomplete="off" placeholder="例如：男性，街头，夜晚" aria-describedby="searchHelp"><button type="submit" aria-label="查找画作">↵</button></div>
+        <p id="searchHelp" class="hint">初版支持下方标签及常见同义词；所有条件同时满足。</p>
+        <div id="filterGroups" class="filter-groups"></div>
+        <div class="selection-header"><span>已选条件 <b id="selectedCount">0</b></span><button id="clearFilters" type="button" class="text-button">清空</button></div>
+        <div id="activeFilters" class="active-filters"><span class="hint">不限定，看看会遇见什么。</span></div>
+        <button type="submit" class="secondary wide" id="filterSearch">查找符合的画作 <span aria-hidden="true">→</span></button>
+      </form></details>
+      <p class="catalog-note"><span id="catalogCount">正在读取</span><br>开放馆藏可随机浏览 · 条件筛选仅使用已确认标签<br>上传画作云端保存 · 收藏仅保存在此浏览器</p>
+      <label class="theme-setting"><input type="checkbox" id="adaptiveTheme" checked> 界面随画作变色</label>
+    </aside>
+    <section class="gallery" aria-label="画作浏览">
+      <div class="gallery-toolbar"><div><span class="small-caps" id="viewMode">自由偶遇</span><span class="toolbar-separator">/</span><span id="poolCount" class="muted">载入画作中</span></div><button class="quiet compact" id="previousButton" disabled>← 上一幅</button></div>
+      <div id="statusMessage" role="status" aria-live="polite" class="status-message" hidden></div>
+      <div class="art-stage" id="artStage" aria-busy="true">
+        <div class="loading" id="imageLoading"><span class="loading-ring"></span><span>正在打开画册…</span></div>
+        <img id="artImage" alt="" hidden>
+        <button id="zoomButton" class="stage-button" aria-label="放大查看原画" hidden>⤢</button>
+        <div id="imageError" class="stage-error" hidden><p>这幅画暂时没能加载。</p><button id="retryImage" class="secondary">重新加载</button></div>
+        <div id="emptyState" class="empty-state" hidden><span class="empty-mark" aria-hidden="true">∅</span><h2>还没有遇见符合的画。</h2><p id="emptyText">当前图库没有能确认全部条件的作品。</p><div id="relaxOptions" class="relax-options"></div><button id="emptyRandom" class="primary">放下条件，随机看看</button></div>
+      </div>
+      <div id="artInfo" hidden>
+        <div class="art-heading"><div><div class="art-kicker" id="artDate"></div><h2 id="artTitle"></h2><p id="originalTitle" class="original-title"></p><p id="artArtist" class="artist"></p><p id="reviewNote" class="hint" hidden></p></div><button id="favoriteCurrent" class="save-button" aria-label="收藏这幅画" aria-pressed="false"><span id="heartIcon">♡</span><span id="favoriteLabel">收藏</span></button></div>
+        <div class="art-tags" id="artTags" aria-label="点击标签加入筛选"></div>
+        <div class="art-actions"><button id="nextButton" class="primary">再遇见一幅 <span aria-hidden="true">↗</span></button><button id="insightsButton" class="secondary" aria-expanded="false" aria-controls="insights">看拍摄灵感 <span aria-hidden="true">＋</span></button><a id="sourceLink" class="source-link" target="_blank" rel="noopener noreferrer">馆藏原页 ↗</a></div>
+        <section id="insights" class="insights" hidden aria-label="画面与摄影参考">
+          <div class="insight-top"><span class="eyebrow">从画布，到取景框</span><span class="hint">画面观察与拍摄建议</span></div>
+          <div class="insight-grid"><div><h3>画面里有什么</h3><p id="composition"></p><ul id="evidenceList"></ul></div><div><h3>可以这样拍</h3><ol id="photoTips"></ol><p class="hint">摄影改编建议，不代表画家的创作意图。</p></div></div>
+          <div class="palette-row"><div><h3>画面配色</h3><p class="hint">近似色板，供搭配参考</p></div><div id="palette" class="palette"></div></div>
+          <div class="explore-row"><span>沿着这幅探索</span><button id="similarColor" class="chip">相近配色 ↗</button><button id="similarComposition" class="chip">相近构图 ↗</button></div>
+        </section>
+      </div>
+      <footer class="gallery-footer"><span>LOOK SLOWLY. FIND SOMETHING.</span><span>PAINTLIGHT · 个人画库</span></footer>
+    </section>
+  </main>
+  <dialog id="collectionDialog" class="collection-dialog"><div class="dialog-heading"><div><span class="eyebrow">YOUR LITTLE GALLERY</span><h2 id="dialogTitle">我的收藏</h2></div><button id="closeCollection" class="close-button" aria-label="关闭">×</button></div><p id="dialogNote" class="hint"></p><div id="collectionGrid" class="collection-grid"></div></dialog>
+  <dialog id="zoomDialog" class="zoom-dialog"><button id="closeZoom" class="close-button" aria-label="关闭大图">×</button><img id="zoomImage" alt=""><p id="zoomCaption"></p></dialog>
+  <dialog id="uploadDialog" class="upload-dialog"><div class="dialog-heading"><div><span class="eyebrow">BRING A PAINTING</span><h2>添加到我的画库</h2></div><button id="closeUpload" class="close-button" aria-label="关闭上传">×</button></div>
+    <p class="hint">仅你可见，保存后可在不同设备打开。画作信息与标签由你确认。</p>
+    <form id="uploadForm">
+      <label class="upload-drop" for="uploadFile"><span id="uploadFileLabel">选择一幅画 · JPG / PNG / WebP</span><span class="hint">原图不超过 10 MB；请选择你有权使用的图片。</span><input type="file" id="uploadFile" accept="image/jpeg,image/png,image/webp" required></label>
+      <img id="uploadPreview" alt="待上传画作预览" hidden>
+      <div class="form-grid"><label>画名 <input id="uploadTitle" maxlength="120" required placeholder="输入画作名称"></label><label>作者 <input id="uploadArtist" maxlength="120" placeholder="不知道可留空"></label><label>年代 <input id="uploadDate" maxlength="80" placeholder="例如：1889"></label><label>来源链接 <input id="uploadSource" type="url" maxlength="1500" placeholder="博物馆或原始来源网页（可选）"></label></div>
+      <fieldset class="upload-tags"><legend>确认画面中存在的内容</legend><p class="hint">不确定的标签请留空。标签会直接用于筛选。</p><div id="uploadTagOptions" class="chips"></div></fieldset>
+      <label class="notes-label">画面观察 / 拍摄想法（可选）<textarea id="uploadNotes" maxlength="1500" rows="3" placeholder="例如：人物在画面左侧，暖色窗光照在脸上……"></textarea></label>
+      <p id="uploadError" class="form-error" role="alert" hidden></p><div class="upload-actions"><button type="button" id="cancelUpload" class="secondary">取消</button><button type="submit" id="saveUpload" class="primary" disabled>保存到我的画库</button></div>
+    </form>
+  </dialog>
+  <dialog id="deleteDialog" class="delete-dialog"><h2>删除这幅上传的画？</h2><p id="deleteTitle"></p><p class="hint">将从你的云端画库移除图片、资料和相关收藏。</p><div class="upload-actions"><button id="cancelDelete" class="secondary">保留</button><button id="confirmDelete" class="primary">确认删除</button></div><p id="deleteError" class="form-error" role="alert" hidden></p></dialog>
+  <dialog id="onlineDialog" class="online-dialog"><div class="dialog-heading"><div><span class="eyebrow">BEYOND THE COLLECTION</span><h2>在线搜画</h2></div><button id="closeOnline" class="close-button" aria-label="关闭在线搜索">×</button></div>
+    <p class="hint">从馆藏或更广的网页寻找画作。搜索结果是待核验线索；AI 识图也可能出错，不保证满足全部条件。</p>
+    <div class="online-options"><label for="onlineMode">搜索范围</label><select id="onlineMode"><option value="museum">馆藏搜索 · 免费</option><option value="external">网页找图 · 免费外部搜索</option><option value="web">AI 全网搜画 · API 计费</option></select><label id="onlineSourceLabel" for="onlineSource">来源</label><select id="onlineSource"><option value="all">所有免费来源</option><option value="library">网站画库 · 图片已保存</option><option value="met">大都会艺术博物馆</option><option value="smk">丹麦国家美术馆</option><option value="commons">Wikimedia Commons</option><option value="aic">芝加哥艺术博物馆</option></select></div>
+    <div id="onlineExternal" class="online-external"><span>免密钥网页找图</span><a id="googleImages" target="_blank" rel="noopener noreferrer">打开 Google 图片 ↗</a><a id="bingImages" target="_blank" rel="noopener noreferrer">打开 Bing 图片 ↗</a><span class="hint">关键词会带入新窗口；结果不会自动导入。</span></div>
+    <details id="apiSettings" class="api-settings"><summary>API 连接 · 无需插件</summary><p class="hint">全网搜画和 AI 检查使用你的 OpenAI API 额度。密钥仅在当前页面临时使用，经画遇后台发送至 OpenAI，不写入画库或浏览器存储；刷新或离开页面后清除。</p><label for="apiKey">OpenAI API 密钥</label><div class="api-key-row"><input id="apiKey" type="password" autocomplete="off" spellcheck="false" maxlength="503" placeholder="sk-…"><button id="clearApiKey" type="button" class="secondary">清除</button><button id="checkApiConnection" type="button" class="secondary">检查连接</button></div><p id="apiConnectionStatus" class="hint" role="status">检查连接无需密钥，不调用付费模型。</p><p class="hint"><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">获取 API 密钥 ↗</a> · <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer">检查 API 余额 ↗</a></p><p class="hint">每次全网搜索最多调用 2 次搜索工具；识图只在你点击时运行。取消请求后，已经开始的调用仍可能计费。当前使用 GPT-5 mini；连接后首次调用会验证账户是否支持。</p></details>
+    <form id="onlineForm" class="online-form"><label class="sr-only" for="onlineQuery">画名、作者或场景</label><input id="onlineQuery" maxlength="160" required placeholder="例如：月夜、莫奈，或 rainy street"><button id="onlineSubmit" type="submit" class="primary">搜索</button></form>
+    <div class="online-examples"><span>试试</span><button type="button" data-online-example="月光 海景">月光海景</button><button type="button" data-online-example="Grimshaw">格里姆肖</button><button type="button" data-online-example="rainy street">雨中街道</button></div>
+    <p id="onlineStatus" class="hint" role="status" aria-live="polite">输入关键词，寻找精选画库之外的作品。</p><div id="onlineSources" class="online-sources"></div>
+    <div id="onlinePagination" class="online-pagination" hidden><button id="onlinePrevious" class="secondary" type="button">上一页</button><span id="onlinePageLabel"></span><button id="onlineNext" class="secondary" type="button">下一页</button></div><div id="onlineResults" class="online-results"></div><div id="onlineCitations"></div>
+    <p class="hint">馆藏搜索和外部网页找图无需密钥。只有 AI 全网搜画与识图需要 API 密钥；来源图片可能加载失败，仍可打开原页查看。AI 检查仅提供画面参考，不自动确认画作身份或标签。</p>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+</body>
+</html>
