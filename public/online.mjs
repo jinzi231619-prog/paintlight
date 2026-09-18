@@ -61,6 +61,8 @@ export function setupOnline({getQuery, onImport, onView}) {
     open(query);
     if (query) search();
   };
+  O('discoverQuery').disabled = false;
+  O('onlineSearchButton').disabled = false;
   O('closeOnline').onclick = close;
   O('onlineDialog').addEventListener('cancel', cancel);
   O('checkApiConnection').onclick = async () => {
