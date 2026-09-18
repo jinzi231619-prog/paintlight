@@ -4,6 +4,9 @@ import {GROUPS, TAGS, parseQuery, filterArtworks, chooseRandom, colorDistance} f
 import {applyTheme} from './theme.mjs';
 import {loadAccount, loadUploads, setupUploads} from './uploads.mjs';
 import {setupOnline} from './online.mjs';
+import {setupInspiration} from './inspiration.mjs';
+import {INSPIRATION_IDS, inspirationFor} from './inspiration-data.mjs';
+let inspiration;
 let uploadControls, uploadsError = '';
 const $ = id => document.getElementById(id);
 let artworks = [], byId = new Map(), selected = [], current = null, view = '自由偶遇', history = [], cursor = -1, seen = new Set(), favorites = new Set(), recent = [], toastTimer, loadTimer;
@@ -57,7 +60,9 @@ function paintingTitle(art) {
   return art.userAdded ? rawText(art.titleZh) : localized(art.titleZh || art.title, art.title || art.titleZh);
 }
 function paintingNotes(art) {
-  return art.userAdded && art.notes ? rawText(art.composition) : art.composition;
+  const study = inspirationFor(art);
+  if (study) return localized(study.observation.zh, study.observation.en);
+  return art.userAdded && art.notes ? rawText(art.composition) : '';
 }
 function refreshCatalog() {
   byId = new Map(artworks.map(a => [a.id, a]));
@@ -192,19 +197,7 @@ function showArt(art, {record = true} = {}) {
     }));
     $('artTags').append(b);
   });
-  setText($('composition'), paintingNotes(art));
-  $('evidenceList').replaceChildren();
-  (selected.length ? selected : art.tags.slice(0, 4)).forEach(t => {
-    if (!art.evidence[t]) return;
-    const li = el('li');
-    li.append(el('span', 'evidence-tag', message("{v0} · ", {
-      v0: t
-    })), textNode(art.evidence[t]));
-    $('evidenceList').append(li);
-  });
-  $('photoTips').replaceChildren();
-  art.photoTips.forEach(t => $('photoTips').append(el('li', '', t)));
-  if (!art.photoTips.length) $('photoTips').append(el('li', '', '这幅作品暂未添加专属拍摄建议。可以从人物位置、明暗和画面配色开始观察。'));
+  inspiration.render(art);
   $('palette').replaceChildren();
   art.colors.forEach(c => {
     const sw = el('span', 'swatch');
@@ -216,7 +209,7 @@ function showArt(art, {record = true} = {}) {
     }));
     $('palette').append(sw);
   });
-  setInsights(false);
+  setInsights(true);
   updateFavorite();
   toolbar();
 }
@@ -297,11 +290,11 @@ function freeRandom() {
   return randomFromPool();
 }
 function collection(kind) {
-  const saved = kind === 'favorites', own = kind === 'uploads', all = kind === 'catalog';
-  setText($('dialogTitle'), all ? '全部画库' : own ? '我的画库' : saved ? '我的收藏' : '最近看过');
-  setText($('dialogNote'), all ? joinText(catalogCounts(), '。标记为待核验的作品尚无场景标签；点击一幅即可进入自由浏览。') : own ? '你添加的作品仅自己可见，云端保存。资料和标签由上传者确认。' : saved ? '收藏保存在此浏览器，清除浏览器数据后会消失。' : '保留此浏览器最近看过的画作。打开记录会退出当前筛选。');
+  const saved = kind === 'favorites', own = kind === 'uploads', all = kind === 'catalog', studies = kind === 'studies';
+  setText($('dialogTitle'), studies ? localized('从一幅画，开始一次创作', 'Start something with a painting') : all ? '全部画库' : own ? '我的画库' : saved ? '我的收藏' : '最近看过');
+  setText($('dialogNote'), studies ? localized('5 个逐图整理的 AI 辅助解读：看见、理解、试拍。尚未经摄影师复核，欢迎带着自己的判断去尝试。', 'Five AI-assisted studies: notice, interpret, experiment. Not yet photographer-reviewed; bring your own judgment to each exercise.') : all ? joinText(catalogCounts(), '。标记为待核验的作品尚无场景标签；点击一幅即可进入自由浏览。') : own ? '你添加的作品仅自己可见，云端保存。资料和标签由上传者确认。' : saved ? '收藏保存在此浏览器，清除浏览器数据后会消失。' : '保留此浏览器最近看过的画作。打开记录会退出当前筛选。');
   $('collectionGrid').replaceChildren();
-  const ids = (all ? artworks.filter(a => !a.userAdded).map(a => a.id) : own ? artworks.filter(a => a.userAdded).map(a => a.id) : saved ? [...favorites].reverse() : recent).filter(id => byId.has(id));
+  const ids = (studies ? INSPIRATION_IDS : all ? artworks.filter(a => !a.userAdded).map(a => a.id) : own ? artworks.filter(a => a.userAdded).map(a => a.id) : saved ? [...favorites].reverse() : recent).filter(id => byId.has(id));
   if (own) {
     const row = el('div', 'collection-add');
     const add = el('button', 'primary', '＋ 添加画作');
@@ -340,10 +333,14 @@ function collection(kind) {
     setAttr(img, "alt", paintingTitle(a));
     img.loading = 'lazy';
     b.append(img, el('strong', '', paintingTitle(a)), el('span', '', rawText(a.artist)));
+    if (studies) {
+      const study = inspirationFor(a);
+      b.append(el('p', 'hint', localized(study.title.zh, study.title.en)));
+    }
     b.onclick = () => {
       selected = [];
       $('query').value = '';
-      view = all ? '馆藏浏览' : own ? '我的画库' : saved ? '我的收藏' : '浏览记录';
+      view = studies ? localized('灵感练习', 'Inspiration studies') : all ? '馆藏浏览' : own ? '我的画库' : saved ? '我的收藏' : '浏览记录';
       renderFilters();
       showArt(a);
       $('collectionDialog').close();
@@ -392,6 +389,9 @@ function similar(kind) {
   status(kind === 'color' ? '根据近似色板寻找；人物和场景仍遵守已选条件。' : '根据人物数量、姿态与空间标签寻找；已选条件保持不变。');
 }
 function initEvents() {
+  $('browseStudies').onclick = $('seeStudies').onclick = () => collection('studies');
+  $('privacyButton').onclick = () => $('privacyDialog').showModal();
+  $('closePrivacy').onclick = () => $('privacyDialog').close();
   $('browseCatalog').onclick = () => collection('catalog');
   $('myUploadsButton').onclick = () => collection('uploads');
   $('adaptiveTheme').onchange = () => {
@@ -535,12 +535,18 @@ async function init() {
   try {
     $('adaptiveTheme').checked = localStorage.getItem('paintlight-adaptive-theme') !== 'false';
   } catch {}
-  const account = await loadAccount();
-  $('accountButton').hidden = !account.uploadsReady;
-  setText($('accountButton'), account.signedIn ? '退出画库' : '登录画库');
-  $('accountButton').href = account.signedIn ? '/cdn-cgi/access/logout' : '/api/private/login';
+  // Account availability must not block the public gallery or free search.
+  $('uploadButton').disabled = $('myUploadsButton').disabled = true;
+  const accountReady = loadAccount().then(account => {
+    $('uploadButton').disabled = $('myUploadsButton').disabled = false;
+    $('accountButton').hidden = !account.uploadsReady;
+    setText($('accountButton'), account.signedIn ? '退出画库' : '登录画库');
+    $('accountButton').href = account.signedIn ? '/cdn-cgi/access/logout' : '/api/private/login';
+    return account;
+  });
   renderFilters();
   initEvents();
+  inspiration = setupInspiration({notify: toast});
   uploadControls = setupUploads({
     notify: toast,
     onSaved(art) {
@@ -585,18 +591,21 @@ async function init() {
     const data = await r.json();
     if (!Array.isArray(data) || !data.length) throw new Error('Empty catalog');
     artworks = data;
-    try {
-      artworks.push(...await loadUploads());
-    } catch (e) {
-      uploadsError = e.message;
-    }
     refreshCatalog();
     setupClassification({getArtworks: () => artworks});
     loadState();
     updateFavorite();
     freeRandom();
+    $('browseStudies').disabled = false;
     registerTools();
-    if (uploadsError) status(joinText(joinText('馆藏可正常浏览；', uploadsError), ' 可在「我的画库」重试。'));
+    // Private uploads arrive independently; never replace the visitor's current painting.
+    accountReady.then(() => loadUploads()).then(ownArts => {
+      artworks = [...artworks, ...ownArts.filter(a => !byId.has(a.id))];
+      refreshCatalog();
+      toolbar();
+    }).catch(e => {
+      uploadsError = e.message;
+    });
   } catch (e) {
     $('imageLoading').hidden = true;
     $('imageError').hidden = false;

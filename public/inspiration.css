@@ -1,0 +1,59 @@
+/* Inspiration belongs beside the artwork, with its own readable editorial rhythm. */
+.study-entry { display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-top:14px;padding:16px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:transparent; }
+.study-entry .study-symbol {font-family:var(--serif);font-size:30px;color:var(--accent);}
+.study-entry strong {display:block;font-weight:500;font-size:15px;}
+.study-entry small {display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.5;}
+.study-entry>span:last-child {margin-left:auto;color:var(--accent);}
+.insights {padding:30px 0 0;background:transparent;border:0;border-top:1px solid var(--line-strong);margin-top:30px;}
+.study-header {display:flex;align-items:baseline;justify-content:space-between;gap:18px;}
+.study-header h2 {font-family:var(--serif);font-weight:400;font-size:clamp(23px,2.2vw,32px);line-height:1.5;margin:10px 0 7px;}
+.study-header .eyebrow {color:var(--accent);}
+.study-lens {font-size:12px;color:var(--muted);white-space:nowrap;}
+.study-provenance {margin:0 0 28px!important;font-size:12px!important;color:var(--muted)!important;}
+.study-columns {display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:26px;}
+.study-section-label {display:flex;align-items:center;gap:10px;}
+.study-section-label span {font-family:Georgia,serif;color:var(--accent);font-size:13px;}
+.study-section-label h3 {margin:0!important;font-family:inherit!important;font-size:14px!important;font-weight:500!important;}
+.study-columns p {margin:12px 0 0;}
+.study-exercise {background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:24px 26px;}
+.study-exercise h4 {font-family:var(--serif);font-size:21px;font-weight:400;line-height:1.5;margin:14px 0;}
+.study-exercise ol {counter-reset:steps;list-style:none;margin:0;padding:0;}
+.study-exercise li {counter-increment:steps;position:relative;padding-left:32px;margin:0 0 14px;}
+.study-exercise li::before {content:counter(steps,decimal-leading-zero);position:absolute;left:0;top:2px;font:12px/1.9 Georgia,serif;color:var(--accent);}
+.study-exercise .hint {border-top:1px solid var(--line);padding-top:15px;margin-bottom:0;}
+.study-pending {max-width:650px;border-left:2px solid var(--accent);padding:0 0 0 18px;margin:24px 0;}
+.study-pending p {margin-top:0;}
+.study-pending button {padding-left:0;text-underline-offset:5px;}
+.notebook {margin-top:28px;padding:26px 0 4px;border-top:1px solid var(--line);}
+.notebook-title {display:flex;align-items:baseline;justify-content:space-between;gap:16px;}
+.notebook h3 {font-size:21px;margin:0;}
+.notebook label {display:block;font-size:13px;color:var(--muted);margin:12px 0 10px;}
+.notebook textarea {resize:vertical;min-height:112px;max-height:360px;width:100%;border:1px solid var(--line-strong);border-radius:5px;padding:15px 17px;background:var(--stage);color:var(--text);font-family:inherit;font-size:14px;line-height:1.8;}
+.notebook textarea::placeholder {color:var(--muted);opacity:.9;}
+.notebook textarea:focus-visible {outline:2px solid var(--accent);outline-offset:3px;}
+.notebook-actions {display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0;}
+.notebook-actions .hint {margin-right:auto;flex-basis:40%;font-size:12px;}
+.notebook-actions button {min-height:42px;font-size:13px;}
+.insights .palette-row {margin-top:24px;}
+.insights .palette-row h3 {font-size:15px;}
+.insights .palette-row .hint {margin-bottom:18px;}
+.insights .swatch {width:34px;height:34px;border-radius:50%;}
+.privacy-link {background:transparent;border:0;padding:0;font:inherit;color:var(--muted);text-decoration:underline;text-underline-offset:4px;}
+.privacy-dialog {max-width:640px;}
+.privacy-dialog p {font-size:14px;line-height:1.9;}
+@media(max-width:800px) {
+  .study-header {display:block;}
+  .study-lens {display:block;margin-bottom:12px;}
+  .study-columns {grid-template-columns:1fr;gap:23px;}
+  .study-exercise {padding:20px;}
+}
+@media(max-width:700px) {
+  .study-entry {margin-top:12px;padding:13px 0;}
+  .insights {padding:25px 0 0;}
+  .study-provenance {margin-bottom:24px!important;}
+  .notebook-title {display:block;}
+  .notebook-title .hint {margin-bottom:0;}
+  .notebook-actions .hint {flex-basis:100%;margin:0;}
+  .insights .palette {max-width:none;margin-top:20px;gap:5px;}
+  .insights .swatch {width:26px;height:26px;}
+}

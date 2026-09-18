@@ -10,7 +10,8 @@ export async function loadAccount() {
   try {
     const r = await fetch('/api/account', {
       credentials: 'same-origin',
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(6000)
     });
     if (!r.ok) throw Error();
     account = await r.json();
