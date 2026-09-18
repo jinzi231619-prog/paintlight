@@ -27,9 +27,33 @@
         "limit": 120,
         "period": 60
       }
+    },
+    {
+      "name": "CONTRIBUTION_LIMITER",
+      "namespace_id": "1003",
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
     }
   ],
   "observability": {
     "enabled": false
-  }
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CONTRIBUTIONS",
+        "class_name": "ContributionStore"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "community-v1",
+      "new_sqlite_classes": [
+        "ContributionStore"
+      ]
+    }
+  ]
 }

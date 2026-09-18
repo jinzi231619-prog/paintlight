@@ -1,3 +1,5 @@
+import {handleContribution} from './contributions.mjs';
+export {ContributionStore} from './contributions.mjs';
 import {handle} from './core.mjs';
 import {viewer,accessConfigured} from './access.mjs';
 const response=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'}});
@@ -10,6 +12,7 @@ export default {async fetch(request,env){
  try{
   const url=new URL(request.url),path=url.pathname;
   if(!path.startsWith('/api/'))return env.ASSETS.fetch(request);
+  if(path==='/api/contributions')return await handleContribution(request,env,async()=>{const assets=await catalogAsset(env,request);const binary=atob(assets['/artworks.json'].body);return JSON.parse(new TextDecoder().decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));});
   if(path==='/api/account'&&request.method==='GET'){const user=await viewer(request,env);return response({signedIn:!!user,uploadsReady:accessConfigured(env)&&!!env.DB&&!!env.BUCKET,loginUrl:'/api/private/login'});}
   if(path==='/api/private/login'&&request.method==='GET'){
    if(!accessConfigured(env))return new Response('个人画库登录尚未配置。馆藏浏览和搜索已可使用。',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});

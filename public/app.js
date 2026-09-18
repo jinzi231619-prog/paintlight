@@ -1,3 +1,4 @@
+import {setupClassification} from './classify.mjs';
 import {t, message, joinText, localized, rawText, setText, setAttr, textNode, setupI18n, getLanguage} from './i18n.mjs';
 import {GROUPS, TAGS, parseQuery, filterArtworks, chooseRandom, colorDistance} from './logic.mjs';
 import {applyTheme} from './theme.mjs';
@@ -590,6 +591,7 @@ async function init() {
       uploadsError = e.message;
     }
     refreshCatalog();
+    setupClassification({getArtworks: () => artworks});
     loadState();
     updateFavorite();
     freeRandom();

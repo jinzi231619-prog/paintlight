@@ -26,6 +26,7 @@
       </form>
       <button id="freeRandom" class="primary wide"><span class="dice" aria-hidden="true">⚄</span> 随机遇见一幅画 <span aria-hidden="true">↗</span></button>
       <button id="browseCatalog" class="secondary wide online-entry">浏览全部画库 <span aria-hidden="true">▦</span></button>
+      <button id="classifyButton" class="community-entry" disabled><span class="community-mark" aria-hidden="true">✧</span><span><strong>帮这幅画补一笔</strong><small>看一眼，点一下，让画库更清楚。</small></span><span aria-hidden="true">↗</span></button>
       <details id="searchPanel" class="search-panel" open><summary>带着一点想法 <span>筛选画作 ＋</span></summary>
       <form id="searchForm">
         <label class="field-label" for="query">你想找什么？</label>
@@ -95,6 +96,30 @@
     <p id="onlineStatus" class="hint" role="status" aria-live="polite">输入关键词，寻找精选画库之外的作品。</p><div id="onlineSources" class="online-sources"></div>
     <div id="onlinePagination" class="online-pagination" hidden><button id="onlinePrevious" class="secondary" type="button">上一页</button><span id="onlinePageLabel"></span><button id="onlineNext" class="secondary" type="button">下一页</button></div><div id="onlineResults" class="online-results"></div><div id="onlineCitations"></div>
     <p class="hint">馆藏搜索和外部网页找图无需密钥。只有 AI 全网搜画与识图需要 API 密钥；来源图片可能加载失败，仍可打开原页查看。AI 检查仅提供画面参考，不自动确认画作身份或标签。</p>
+    </div>
+  </dialog>
+  <dialog id="classifyDialog" class="classify-dialog" aria-labelledby="classifyHeading">
+    <header class="classify-header"><div><span class="eyebrow">ONE LOOK, ONE LITTLE CONTRIBUTION</span><h2 id="classifyHeading">帮这幅画补一笔</h2></div><button id="closeClassify" class="close-button" aria-label="关闭画作共建">×</button></header>
+    <div class="classify-layout">
+      <section id="classifyPicture" class="classify-picture" aria-label="待分类画作">
+        <div id="classifyImageStage" class="classify-image-stage"><img id="classifyImage" alt="" hidden><span id="classifyImageLoading" class="hint">正在展开画作…</span><div id="classifyImageError" hidden><p>这幅画暂时没能加载。</p><button id="classifyRetryImage" class="secondary">重新加载</button></div></div>
+        <div class="classify-caption"><div><h3 id="classifyArtTitle"></h3><p id="classifyArtArtist" class="hint"></p></div><button id="classifyZoomButton" class="quiet" type="button" aria-controls="classifyImageStage" aria-expanded="false">仔细看看</button></div>
+        <div id="classifyTags" class="observation-tags" aria-label="这次的观察"></div>
+      </section>
+      <section class="classify-work" aria-label="回答画面问题">
+        <div class="classify-meter"><span id="classifyStep" class="hint"></span><div id="classifyProgress" class="classify-progress"></div></div>
+        <div id="classifyCard" class="classify-card">
+          <div id="classifyQuestionView"><h3 id="classifyQuestion" tabindex="-1"></h3><p id="classifyHint" class="hint"></p><div id="classifyOptions" class="observation-options"></div></div>
+          <div id="classifyReview" hidden><span class="review-mark" aria-hidden="true">✧</span><h3 id="classifyReviewHeading" tabindex="-1">这是你看到的画面</h3><dl id="classifySummary"></dl><button id="classifySubmit" class="primary wide" type="button">提交这幅的观察</button><p class="hint">提交后进入待复核区，不会直接改变画作标签。</p></div>
+          <div id="classifyThanks" hidden><span class="review-mark completion-mark" aria-hidden="true">✧</span><h3 id="classifyThanksHeading" tabindex="-1">这幅画，又清楚了一点。</h3><p>你的观察已收到。谢谢你认真看这一眼。</p><p class="hint">等待复核后，才可能用于筛选。</p><button id="classifyNext" class="primary wide">再看一幅</button><button id="classifyFinish" class="quiet wide">先到这里</button></div>
+          <div id="classifyEmpty" hidden><span class="review-mark" aria-hidden="true">◌</span><h3>这轮先到这里。</h3><p>暂时没有新的待分类画作。谢谢你留下的观察。</p><button id="classifyRestart" class="secondary wide">看看刚才跳过的画</button><button id="classifyEmptyFinish" class="quiet wide">回到画库</button></div>
+        </div>
+        <p id="classifyError" class="form-error" role="alert" hidden></p>
+        <div class="classify-tools"><button id="classifyUndo" class="quiet" disabled>↶ 撤销上一题</button><button id="classifySkip" class="quiet">跳过这幅 →</button></div>
+        <p id="classifySession" class="hint" aria-live="polite">没有任务，随时可以停下。</p>
+        <p id="classifyStorageNote" class="hint" hidden>浏览器未能保存草稿，离开页面后可能丢失；已提交的观察保存在云端。</p>
+        <details class="classify-about"><summary>这些回答会怎样使用？</summary><p>无需登录。浏览器保存随机参与编号和草稿；提交时只发送参与编号、画作编号和选项。回答先保存为待复核观察，不会自动成为已确认标签。不同浏览器不代表不同的人，也不会仅凭票数自动通过。</p></details>
+      </section>
     </div>
   </dialog>
   <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
