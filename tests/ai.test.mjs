@@ -51,6 +51,18 @@ test('connection check needs no credential and distinguishes reachability from k
  const result=await checkOpenAIConnection(async(url,options)=>{assert.equal(url,'https://api.openai.com/v1/models');assert.equal(options.headers,undefined);return new Response(null,{status:401});});assert.equal(result.reachable,true);
  assert.equal((await checkOpenAIConnection(async()=>{throw Error('network')})).reachable,false);
 });
+test('English UI requests English AI explanations without changing the original conditions',async()=>{
+ const conditions=['male','rainy street'];
+ await handleAiRequest(request('/api/search/verify',{conditions,imageUrl:image.image_url,language:'en'}),'english-user',async(url,options)=>{
+  const body=JSON.parse(options.body);assert(body.instructions.includes('short English visual evidence'));
+  assert.deepEqual(JSON.parse(body.input[0].content[0].text).conditions,conditions);
+  return Response.json(visionResult(conditions.map(condition=>({condition,status:'unknown',evidence:'Not clearly visible.'}))));
+ });
+ await handleAiRequest(request('/api/search/web',{query:'rainy street',language:'en'}),'english-user',async(url,options)=>{
+  assert(JSON.parse(options.body).instructions.includes('Use English for short descriptions'));
+  return Response.json(webResult);
+ });
+});
 
 // Core tests supply an already-authenticated identity; worker.test covers the untrusted HTTP boundary.
 function handle(request,env,assets={}) { const url=new URL(request.url);url.pathname=url.pathname.replace('/api/private/uploads','/api/uploads');return coreHandle(new Request(url,request),env,assets,request.headers.get('oai-authenticated-user-id')); }

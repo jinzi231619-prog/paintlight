@@ -15,15 +15,24 @@ const ALIASES = [
   ['白天',['白天']],['日间',['白天']],['夜晚',['夜晚']],['夜间',['夜晚']],['夜景',['夜晚']],['晚上',['夜晚']],['黄昏',['黄昏']],['傍晚',['黄昏']],['日落',['黄昏']],
   ['雨天',['雨天']],['下雨',['雨天']],['雨中',['雨天']],['雪景',['雪景']],['雪天',['雪景']],['下雪',['正在下雪']],
   ['蓝色',['蓝色']],['偏蓝',['蓝色']],['绿色',['绿色']],['偏绿',['绿色']],['红色',['红色']],['偏红',['红色']],['暖色',['暖色']],['留白',['留白']],['纵深',['纵深']],
-  ['male',['男性']],['female',['女性']],['night',['夜晚']],['street',['街头']],['rain',['雨天']],['blue',['蓝色']],['green',['绿色']],['red',['红色']]
+  ['male',['男性']],['man',['男性']],['men',['男性']],['female',['女性']],['woman',['女性']],['women',['女性']],
+  ['one person',['单人']],['single person',['单人']],['solo',['单人']],['several people',['多人']],['multiple people',['多人']],['group',['多人']],
+  ['back view',['背影']],['from behind',['背影']],['side profile',['侧脸']],['profile',['侧脸']],
+  ['indoors',['室内']],['indoor',['室内']],['interior',['室内']],['room',['室内']],['street',['街头']],['streets',['街头']],
+  ['nature',['自然']],['landscape',['自然']],['waterside',['水边']],['waterfront',['水边']],
+  ['daytime',['白天']],['daylight',['白天']],['day',['白天']],['night',['夜晚']],['nighttime',['夜晚']],
+  ['dusk',['黄昏']],['twilight',['黄昏']],['sunset',['黄昏']],['rain',['雨天']],['rainy',['雨天']],
+  ['snow',['雪景']],['snowy',['雪景']],['blue',['蓝色']],['green',['绿色']],['red',['红色']],
+  ['warm tones',['暖色']],['warm colors',['暖色']],['warm colours',['暖色']],['negative space',['留白']],['depth',['纵深']]
 ].sort((a,b)=>b[0].length-a[0].length);
 export function parseQuery(query) {
   let rest = query.trim().toLowerCase(); const found = new Set();
   for (const [word, tags] of ALIASES) {
-    const re = new RegExp(/^[a-z]+$/.test(word) ? `\\b${word}\\b` : word, 'g');
+    const re = new RegExp(/^[a-z ]+$/.test(word) ? `\\b${word.replaceAll(' ', '\\s+')}\\b` : word, 'g');
     if (re.test(rest)) { tags.forEach(t=>found.add(t)); rest=rest.replace(re,' '); }
   }
   rest=rest.replace(/我想找|我想看|想找|想看|一幅|绘画|油画|画作|以及|还有|并且|最好|偏|有|和|与|的|一些|一点|是|请/g,'');
+  rest=rest.replace(/\b(?:please|find|me|a|an|painting|paintings|with|and|of|in|at|the)\b/g,'');
   const unknown=rest.split(/[\s，,、；;。.!！?？/＋+]+/).filter(Boolean);
   for(const tag of [...found]) if(!TAGS.includes(tag)){unknown.push(tag);found.delete(tag);}
   return {tags:[...found],unknown:[...new Set(unknown)]};

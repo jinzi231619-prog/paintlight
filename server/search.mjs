@@ -39,7 +39,7 @@ async function smkSearch(query,fetcher,page){
 export function searchLocalCatalog(query,catalog,page=0){
  const tokens=translateSearch(query).toLowerCase().split(/\s+/).filter(Boolean);
  const matches=catalog.filter(a=>{const hay=[a.title,a.titleZh,a.artist,a.medium,...(a.searchTerms||[]),...(a.tags||[]).map(translateSearch)].join(' ').toLowerCase();return tokens.every(t=>hay.includes(t));});
- return {items:matches.slice(page*SEARCH_PAGE_SIZE,(page+1)*SEARCH_PAGE_SIZE).map(a=>({...candidate({id:a.id,title:a.titleZh||a.title,artist:a.artist,date:a.date,description:a.medium||a.composition,source:a.museum,sourceUrl:a.sourceUrl,imageUrl:a.museumImageUrl,license:'Public domain · 馆方标记',importAllowed:true}),localImage:a.image,verified:false})),hasMore:(page+1)*SEARCH_PAGE_SIZE<matches.length};
+ return {items:matches.slice(page*SEARCH_PAGE_SIZE,(page+1)*SEARCH_PAGE_SIZE).map(a=>({...candidate({id:a.id,title:a.titleZh||a.title,artist:a.artist,date:a.date,description:a.medium||a.composition,source:a.museum,sourceUrl:a.sourceUrl,imageUrl:a.museumImageUrl,license:'Public domain · 馆方标记',importAllowed:true}),titleOriginal:a.title,localImage:a.image,verified:false})),hasMore:(page+1)*SEARCH_PAGE_SIZE<matches.length};
 }
 export async function searchPaintings(query,fetcher=fetch,options={}){
  const page=options.page??0,source=options.source||'all';
