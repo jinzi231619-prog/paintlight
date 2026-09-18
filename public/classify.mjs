@@ -1,5 +1,6 @@
 import {setText,setAttr,message,localized,rawText,textNode} from './i18n.mjs';
 import {QUESTIONS,SCHEMA_VERSION,questionIds,nextQuestion,validateAnswers,undoAnswer,answerLabel} from './classify-logic.mjs';
+import {createQuizMotion} from './quiz-motion.mjs';
 const KEY='paintlight-community-v1';
 export function setupClassification({getArtworks}) {
   const $=id=>document.getElementById(id),dialog=$('classifyDialog');
@@ -7,17 +8,34 @@ export function setupClassification({getArtworks}) {
   const participant=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(saved.participant||'')?saved.participant:crypto.randomUUID();
   const completed=new Set(Array.isArray(saved.completed)?saved.completed.filter(x=>typeof x==='string').slice(0,1000):[]);
   const skipped=new Set();
-  let art=null,answers={},phase='question',busy=false,transition=false,timer,loaded=false,sessionCount=0;
+  let art=null,answers={},phase='question',busy=false,transition=false,loaded=false,sessionCount=0;
+  const motion=createQuizMotion({card:$('classifyCard')});
+  const dots=new Map(),tags=new Map();
   const draft=saved.draft;
   function persist(){
     try{localStorage.setItem(KEY,JSON.stringify({participant,completed:[...completed].slice(-1000),draft:art&&!completed.has(art.id)?{version:SCHEMA_VERSION,artworkId:art.id,answers}:null}));$('classifyStorageNote').hidden=true;}
     catch{$('classifyStorageNote').hidden=false;}
   }
   function node(tag,cls,copy){const n=document.createElement(tag);n.className=cls;if(copy!==undefined)setText(n,copy);return n;}
-  function focusQuestion(){if(dialog.open)$('classifyQuestion').focus({preventScroll:true});}
-  function animate(name){
-    const card=$('classifyCard');card.classList.remove('question-arrive','answer-leave','round-complete');
-    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){void card.offsetWidth;card.classList.add(name);}
+  function focusQuestion(){if(dialog.open)$(phase==='review'?'classifyReviewHeading':'classifyQuestion').focus({preventScroll:true});}
+  function cancelTransition(){
+    motion.cancel();transition=false;
+    if(phase==='question')phase=nextQuestion(answers)?'question':'review';
+  }
+  function renderObservations(ids){
+    // Keep existing nodes (and their translations); change only the affected observation.
+    for(const [key,dot] of dots)if(!ids.includes(key)){dot.remove();dots.delete(key);}
+    ids.forEach((key,i)=>{
+      let dot=dots.get(key);
+      if(!dot){dot=node('span','classify-dot');dot.setAttribute('aria-hidden','true');dots.set(key,dot);$('classifyProgress').insertBefore(dot,$('classifyProgress').children[i]||null);}
+      dot.classList.toggle('filled',Object.hasOwn(answers,key));
+    });
+    for(const [key,tag] of tags)if(!Object.hasOwn(answers,key)||!ids.includes(key)){tag.remove();tags.delete(key);}
+    for(const key of ids.filter(key=>Object.hasOwn(answers,key))){
+      let tag=tags.get(key);
+      if(!tag){tag=node('span','observation-tag');tags.set(key,tag);$('classifyTags').append(tag);setAttr(tag,'title',QUESTIONS[key].title);}
+      if(tag.dataset.answer!==answers[key]){setText(tag,answerLabel(key,answers[key]));tag.dataset.answer=answers[key];}
+    }
   }
   function render(){
     const ids=questionIds(answers),id=nextQuestion(answers);
@@ -34,14 +52,8 @@ export function setupClassification({getArtworks}) {
     $('classifyRetryImage').disabled=busy;
     setText($('classifySubmit'),busy?'正在提交…':'提交这幅的观察');
     setText($('classifySession'),sessionCount?message('这次已贡献 {count} 幅',{count:sessionCount}):'没有任务，随时可以停下。');
-    $('classifyProgress').replaceChildren();
-    ids.forEach((key,i)=>{const dot=node('span','classify-dot'+(Object.hasOwn(answers,key)?' filled':''));dot.setAttribute('aria-hidden','true');$('classifyProgress').append(dot);});
+    renderObservations(ids);
     $('classifyProgress').hidden=phase==='empty';
-    $('classifyTags').replaceChildren();
-    for(const key of ids.filter(key=>Object.hasOwn(answers,key))){
-      const tag=node('span','observation-tag',answerLabel(key,answers[key]));
-      setAttr(tag,'title',QUESTIONS[key].title);$('classifyTags').append(tag);
-    }
     if(phase==='question'&&id){
       const q=QUESTIONS[id];
       setText($('classifyStep'),message('第 {current} / {total} 个小问题',{current:ids.indexOf(id)+1,total:ids.length}));
@@ -61,10 +73,9 @@ export function setupClassification({getArtworks}) {
   }
   function answer(id,value,button){
     if(busy||transition||!loaded||phase!=='question'||nextQuestion(answers)!==id)return;
-    answers={...answers,[id]:value};persist();transition=true;button.classList.add('chosen');
+    answers={...answers,[id]:value};transition=true;button.classList.add('chosen');
     $('classifyOptions').querySelectorAll('button').forEach(b=>b.disabled=true);
-    animate('answer-leave');
-    timer=setTimeout(()=>{transition=false;phase=nextQuestion(answers)?'question':'review';render();animate('question-arrive');if(phase==='question')focusQuestion();else if(dialog.open)$('classifyReviewHeading').focus({preventScroll:true});},matchMedia('(prefers-reduced-motion: reduce)').matches?0:230);
+    motion.afterAnswer(()=>{transition=false;phase=nextQuestion(answers)?'question':'review';render();focusQuestion();persist();});
   }
   function loadImage(){
     loaded=false;$('classifyImage').hidden=true;$('classifyImageError').hidden=true;$('classifyImageLoading').hidden=false;
@@ -74,13 +85,14 @@ export function setupClassification({getArtworks}) {
     setAttr(image,'alt',localized(art.titleZh||art.title,art.title||art.titleZh));image.src=art.image;
   }
   function showArtwork(next,initial={}){
-    clearTimeout(timer);transition=false;art=next;answers=initial;phase=nextQuestion(answers)?'question':'review';
+    cancelTransition();art=next;answers=initial;phase=nextQuestion(answers)?'question':'review';
     $('classifyError').hidden=true;
     setText($('classifyArtTitle'),localized(art.titleZh||art.title,art.title||art.titleZh));
     setText($('classifyArtArtist'),rawText([art.artist,art.date].filter(Boolean).join(' · ')));
-    $('classifyImageStage').classList.remove('zoomed');setText($('classifyZoomButton'),'仔细看看');$('classifyZoomButton').setAttribute('aria-expanded','false');loadImage();persist();render();animate('question-arrive');focusQuestion();
+    $('classifyImageStage').classList.remove('zoomed');setText($('classifyZoomButton'),'仔细看看');$('classifyZoomButton').setAttribute('aria-expanded','false');loadImage();persist();render();motion.arrive();focusQuestion();
   }
   function nextArtwork(){
+    cancelTransition();
     const eligible=getArtworks().filter(a=>a.expandedCatalog&&!a.userAdded&&!completed.has(a.id)&&!skipped.has(a.id));
     if(!eligible.length){art=null;answers={};phase='empty';render();persist();return;}
     showArtwork(eligible[Math.floor(Math.random()*eligible.length)]);
@@ -94,11 +106,12 @@ export function setupClassification({getArtworks}) {
   };
   $('classifyButton').onclick=open;
   $('classifyButton').disabled=false;
-  function close(){dialog.close();persist();}
+  function close(){cancelTransition();dialog.close();persist();}
   $('closeClassify').onclick=close;$('classifyFinish').onclick=close;$('classifyEmptyFinish').onclick=close;
-  dialog.addEventListener('cancel',()=>persist());
+  dialog.addEventListener('cancel',()=>{cancelTransition();persist();});
+  window.addEventListener('pagehide',()=>{cancelTransition();persist();});
   $('classifyUndo').onclick=()=>{
-    if(busy||!art)return;clearTimeout(timer);transition=false;answers=undoAnswer(answers);phase='question';persist();render();animate('question-arrive');focusQuestion();
+    if(busy||!art)return;cancelTransition();answers=undoAnswer(answers);phase='question';persist();render();motion.arrive();focusQuestion();
   };
   $('classifySkip').onclick=()=>{if(busy||!art)return;skipped.add(art.id);nextArtwork();};
   $('classifyNext').onclick=nextArtwork;
@@ -113,7 +126,7 @@ export function setupClassification({getArtworks}) {
       if(!r.ok)throw Error(r.status===429?'稍微歇一会儿，再试一次。':'暂时没能提交，答案已保留。请重试。');
       const data=await r.json();if(data.received!==true||data.status!=='pending')throw Error('暂时没能提交，答案已保留。请重试。');
       completed.add(art.id);if(!data.duplicate)sessionCount++;
-      phase='thanks';persist();render();animate('round-complete');
+      phase='thanks';persist();render();motion.arrive();
       if(dialog.open)$('classifyThanksHeading').focus({preventScroll:true});
     }catch(error){setText($('classifyError'),error.message==='稍微歇一会儿，再试一次。'?error.message:'暂时没能提交，答案已保留。请重试。');$('classifyError').hidden=false;}
     finally{busy=false;render();}

@@ -2,18 +2,20 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#171b19">
+  <meta name="theme-color" content="#1d1e1b">
   <title>画遇 Paintlight · 从绘画遇见摄影灵感</title>
   <meta name="description" content="随机遇见一幅真实绘画，按人物、场景和光线筛选，发现值得带进镜头的构图与色彩。">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23171b19'/%3E%3Cpath d='M8 25V13a8 8 0 0 1 16 0v12M6 25h20M12 25V14a4 4 0 0 1 8 0v11' stroke='%23d3e8ad' fill='none' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/inspiration.css">
+  <link rel="stylesheet" href="/classify.css">
+  <link rel="stylesheet" href="/music.css">
   <script type="module" src="/app.js"></script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/" aria-label="画遇首页"><svg viewBox="0 0 32 36" aria-hidden="true"><path d="M5 32V14a11 11 0 0 1 22 0v18M2 32h28M11 32V15a5 5 0 0 1 10 0v17"/></svg><span>画遇</span><span class="brand-en">PAINTLIGHT</span></a>
-    <nav aria-label="我的画作"><a id="accountButton" class="quiet" href="/api/private/login" hidden>登录画库</a><button id="uploadButton" class="quiet">＋ 添加画作</button><button id="myUploadsButton" class="quiet">我的画库</button><button id="historyButton" class="quiet"><span class="desktop-label">最近看过</span><span class="mobile-label">历史</span></button><button id="favoritesButton" class="quiet">我的收藏 <span id="favoritesCount" class="count">0</span></button></nav><label class="language-control"><span aria-hidden="true">◎</span><select id="languageSelect" data-language-select aria-label="Language / 语言"><option value="zh" lang="zh-CN">中文</option><option value="en" lang="en">English</option></select></label>
+    <nav aria-label="我的画作"><a id="accountButton" class="quiet" href="/api/private/login" hidden>登录画库</a><button id="uploadButton" class="quiet">＋ 添加画作</button><button id="myUploadsButton" class="quiet">我的画库</button><button id="historyButton" class="quiet"><span class="desktop-label">最近看过</span><span class="mobile-label">历史</span></button><button id="favoritesButton" class="quiet">我的收藏 <span id="favoritesCount" class="count">0</span></button></nav><div class="header-tools"><div class="music-control"><button id="musicToggle" class="music-toggle" type="button" aria-label="开启背景音乐" aria-pressed="false"><svg id="musicPlayIcon" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4.5 15 10l-8 5.5Z"/></svg><svg id="musicPauseIcon" viewBox="0 0 20 20" aria-hidden="true" hidden><path d="M7 5v10M13 5v10"/></svg><span id="musicLabel">音乐 · 关</span></button><button id="musicSettings" class="music-settings" type="button" aria-haspopup="dialog" aria-controls="musicDialog" aria-label="选择曲目与音量">⌄</button></div><label class="language-control"><span aria-hidden="true">◎</span><select id="languageSelect" data-language-select aria-label="Language / 语言"><option value="zh" lang="zh-CN">中文</option><option value="en" lang="en">English</option></select></label></div>
   </header>
   <main class="workspace">
     <aside class="controls" aria-label="探索与筛选">
@@ -81,7 +83,27 @@
       <footer class="gallery-footer"><span>LOOK SLOWLY. MAKE SOMETHING.</span><button id="privacyButton" class="privacy-link" type="button">隐私与本地数据</button></footer>
     </section>
   </main>
-  <dialog id="privacyDialog" class="collection-dialog privacy-dialog" aria-labelledby="privacyTitle"><div class="dialog-heading"><h2 id="privacyTitle">隐私与本地数据</h2><button id="closePrivacy" class="close-button" aria-label="关闭隐私说明">×</button></div><p>无需登录即可浏览馆藏。收藏、浏览记录、语言、主题和灵感笔记保存在此浏览器；不会因写下笔记而公开发布。</p><p>画遇页面没有加入广告或分析追踪脚本。启用私人画库后，登录服务可能使用必要 Cookie 维持会话。若以后加入非必要追踪，会先提供独立的选择和撤回入口。</p><p>云端上传功能需要登录与存储配置。搜索词会发送到你选择的搜索服务；可选 AI 功能的密钥和请求按 AI 设置里的说明处理。</p><p>清除浏览器的本站数据会移除本地记录和笔记。需要保留的笔记，请先下载备份。</p></dialog>
+  <audio id="galleryAudio" preload="none" hidden></audio>
+  <aside id="musicInvitation" class="music-invitation" aria-labelledby="musicInviteTitle" hidden>
+    <button id="dismissMusic" class="music-dismiss" type="button" aria-label="安静浏览，关闭音乐邀请">×</button>
+    <span class="eyebrow">A LITTLE ROOM FOR STILLNESS</span>
+    <h2 id="musicInviteTitle">给这次停留，<br>配一点音乐？</h2>
+    <p>几首舒缓的古典乐，陪你慢慢看。<br>由你开启，也随时可以关掉。</p>
+    <div class="music-invite-actions"><button id="declineMusic" class="secondary" type="button">安静浏览</button><button id="acceptMusic" class="primary" type="button">开启音乐 <span aria-hidden="true">♪</span></button></div>
+    <small>当前没有声音 · 顶部可随时开关</small>
+  </aside>
+  <dialog id="musicDialog" class="collection-dialog music-dialog" aria-labelledby="musicTitle">
+    <div class="dialog-heading"><div><span class="eyebrow">SOUND FOR SLOW LOOKING</span><h2 id="musicTitle">此刻的配乐</h2></div><button id="closeMusic" class="close-button" aria-label="关闭音乐设置">×</button></div>
+    <div class="music-now"><span class="music-note" aria-hidden="true">♪</span><div><h3 id="musicNowTitle"></h3><p id="musicNowArtist"></p></div></div>
+    <div id="musicTracks" class="music-tracks" role="group" aria-label="选择背景音乐"></div>
+    <div class="music-volume"><label for="musicVolume">音量</label><input id="musicVolume" type="range" min="0" max="100" value="22"><output id="musicVolumeValue" for="musicVolume">22%</output></div>
+    <p class="hint">若设备不支持网页音量，请使用设备音量键。</p>
+    <button id="musicPanelToggle" class="primary wide" type="button">开启音乐</button>
+    <p id="musicStatus" class="hint" role="status" aria-live="polite">音乐已关闭</p>
+    <p class="music-behavior">曲目会依次循环。离开页面时暂停；刷新或重新进入后，始终由你手动开启。</p>
+    <details class="music-credits"><summary>录音来源与授权</summary><p><a id="musicCreditSource" target="_blank" rel="noopener noreferrer"></a></p><p>演奏与编配：Kevin MacLeod。录音采用 <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer">CC BY 3.0</a> 授权，已转码为 MP3 128 kbps。<a href="/audio/CREDITS.md" target="_blank" rel="noopener noreferrer">完整署名与来源</a></p></details>
+  </dialog>
+  <dialog id="privacyDialog" class="collection-dialog privacy-dialog" aria-labelledby="privacyTitle"><div class="dialog-heading"><h2 id="privacyTitle">隐私与本地数据</h2><button id="closePrivacy" class="close-button" aria-label="关闭隐私说明">×</button></div><p>无需登录即可浏览馆藏。收藏、浏览记录、语言、主题和灵感笔记保存在此浏览器；不会因写下笔记而公开发布。</p><p>画遇页面没有加入广告或分析追踪脚本。启用私人画库后，登录服务可能使用必要 Cookie 维持会话。若以后加入非必要追踪，会先提供独立的选择和撤回入口。</p><p>云端上传功能需要登录与存储配置。搜索词会发送到你选择的搜索服务；可选 AI 功能的密钥和请求按 AI 设置里的说明处理。</p><p>音乐默认关闭，只有点击开启后才会加载录音。曲目、音量与是否关闭邀请保存在此浏览器；播放使用本站音频文件，不嵌入第三方播放器。</p><p>清除浏览器的本站数据会移除本地记录和笔记。需要保留的笔记，请先下载备份。</p></dialog>
   <dialog id="collectionDialog" class="collection-dialog"><div class="dialog-heading"><div><span class="eyebrow">YOUR LITTLE GALLERY</span><h2 id="dialogTitle">我的收藏</h2></div><button id="closeCollection" class="close-button" aria-label="关闭">×</button></div><p id="dialogNote" class="hint"></p><div id="collectionGrid" class="collection-grid"></div></dialog>
   <dialog id="zoomDialog" class="zoom-dialog"><button id="closeZoom" class="close-button" aria-label="关闭大图">×</button><img id="zoomImage" alt=""><p id="zoomCaption"></p></dialog>
   <dialog id="uploadDialog" class="upload-dialog"><div class="dialog-heading"><div><span class="eyebrow">BRING A PAINTING</span><h2>添加到我的画库</h2></div><button id="closeUpload" class="close-button" aria-label="关闭上传">×</button></div>

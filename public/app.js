@@ -1,3 +1,4 @@
+import {setupMusic} from './music.mjs';
 import {setupClassification} from './classify.mjs';
 import {t, message, joinText, localized, rawText, setText, setAttr, textNode, setupI18n, getLanguage} from './i18n.mjs';
 import {GROUPS, TAGS, parseQuery, filterArtworks, chooseRandom, colorDistance} from './logic.mjs';
@@ -397,7 +398,7 @@ function initEvents() {
   $('adaptiveTheme').onchange = () => {
     if ($('adaptiveTheme').checked && current) applyTheme(current.colors); else {
       document.documentElement.removeAttribute('style');
-      document.querySelector('meta[name=\"theme-color\"]').setAttribute('content', '#171b19');
+      document.querySelector('meta[name=\"theme-color\"]').setAttribute('content', '#1d1e1b');
     }
     try {
       localStorage.setItem('paintlight-adaptive-theme', String($('adaptiveTheme').checked));
@@ -616,6 +617,7 @@ async function init() {
   }
 }
 setupI18n();
+setupMusic();
 document.addEventListener('languagechange', () => {
   if (current) $('originalTitle').hidden = current.userAdded || getLanguage() === 'en' || current.title === current.titleZh;
 });
