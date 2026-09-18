@@ -10,13 +10,13 @@ function fromHsl(h,s,l){const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1
 export function themeFromPalette(palette){
  const colors=palette.filter(c=>/^#[a-f0-9]{6}$/i.test(c)).map(rgb);if(!colors.length)colors.push([40,55,35]);
  const ranked=colors.map((c,i)=>({c,weight:(1-i*.08)*(hsl(c)[1]+.12)*(1-Math.abs(hsl(c)[2]-.48))})).sort((a,b)=>b.weight-a.weight);
- const [h,s]=hsl(ranked[0].c),sat=s<.08?.06:clamp(s*1.35,.35,.72);
+ const [h,s]=hsl(ranked[0].c),sat=s<.08?.04:clamp(s*.9,.24,.45);
  const average=colors.reduce((v,c)=>v+luminance(c),0)/colors.length,light=average>.21;
- const bg=fromHsl(h,sat,light?.79:.25),panel=fromHsl(h,sat*.78,light?.88:.19),stage=fromHsl(h,sat*.85,light?.69:.16);
+ const bg=fromHsl(h,sat,light?.86:.22),panel=fromHsl(h,sat*.82,light?.92:.19),stage=fromHsl(h,sat*.9,light?.80:.18);
  const surfaces=[bg,panel,stage],target=light?[0,0,0]:[255,255,255];
- let text=fromHsl(h,.45,light?.055:.97),muted=fromHsl(h,.32,light?.13:.87);
+ let text=fromHsl(h,.12,light?.08:.94),muted=fromHsl(h,.12,light?.19:.76);
  for(const surface of surfaces){text=accessible(text,surface,target);muted=accessible(muted,surface,target);}
- let accent=fromHsl(h,Math.min(.88,sat+.15),light?.17:.86);for(const surface of surfaces)accent=accessible(accent,surface,target);
+ let accent=fromHsl(h,Math.min(.38,sat),light?.20:.80);for(const surface of surfaces)accent=accessible(accent,surface,target);
  const accentText=contrast(accent,[0,0,0])>=contrast(accent,[255,255,255])?[0,0,0]:[255,255,255];
  const line=mix(bg,text,.25),lineStrong=mix(bg,text,.48);
  return {'bg':hex(bg),'panel':hex(panel),'stage':hex(stage),'text':hex(text),'muted':hex(muted),'accent':hex(accent),'accent-dark':hex(accentText),'line':hex(line),'line-strong':hex(lineStrong),'hover':hex(mix(bg,accent,.10)),'accent-hover':hex(mix(accent,light?[0,0,0]:[255,255,255],.05)),'light':light};
