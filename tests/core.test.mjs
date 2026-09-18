@@ -44,7 +44,7 @@ test('all real palettes and extreme palettes have readable foregrounds',()=>{
  assert.notDeepEqual(themeFromPalette(['#92bee1','#fff8aa']),themeFromPalette(['#512811','#201808']));
 });
 test('expanded collection retains evidence and strict AND filtering',()=>{
- assert.equal(catalog.length,267);assert.equal(new Set(catalog.map(a=>a.id)).size,267);
+ assert.equal(catalog.length,300);assert.equal(new Set(catalog.map(a=>a.id)).size,300);
  assert.equal(catalog.filter(a=>!a.expandedCatalog).length,65);
  assert.equal(filterArtworks(catalog.filter(a=>a.expandedCatalog),['街头']).length,0);
  for(const art of catalog){assert(art.tags.every(t=>TAGS.includes(t)&&art.evidence[t]));assert(fs.existsSync(new URL('../public'+art.image,import.meta.url)));}
